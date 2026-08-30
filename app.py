@@ -1,24 +1,145 @@
 import streamlit as st
 import joblib
 import re
-
 from preprocessing import clean_text
 
 
-# ==========================================
+# =========================================================
 # PAGE CONFIG
-# ==========================================
+# =========================================================
 
 st.set_page_config(
     page_title="Email Security Analyzer",
-    page_icon="📧",
-    layout="wide"
+    page_icon="🛡️",
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
 
-# ==========================================
+# =========================================================
+# CUSTOM CSS
+# =========================================================
+
+st.markdown("""
+<style>
+
+    /* ================= APP ================= */
+
+    .stApp {
+        background-color: #080d18;
+    }
+
+    .block-container {
+        max-width: 1350px;
+        padding-top: 28px;
+        padding-bottom: 20px;
+    }
+
+    /* ================= HEADER ================= */
+
+    h1 {
+        font-size: 34px !important;
+        font-weight: 800 !important;
+        color: #f8fafc !important;
+        margin-bottom: 0 !important;
+    }
+
+    .stCaption {
+        color: #7f8da3 !important;
+    }
+
+    /* ================= INPUTS ================= */
+
+    div[data-baseweb="input"] > div,
+    div[data-baseweb="textarea"] {
+        background-color: #0d1524 !important;
+        border: 1px solid #263449 !important;
+        border-radius: 10px !important;
+    }
+
+    input,
+    textarea {
+        color: #f8fafc !important;
+    }
+
+    label {
+        color: #b8c4d6 !important;
+        font-weight: 600 !important;
+    }
+
+    /* ================= BUTTON ================= */
+
+    .stButton > button {
+        width: 100%;
+        height: 48px;
+        background-color: #2563eb !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 10px !important;
+        font-size: 15px !important;
+        font-weight: 700 !important;
+    }
+
+    .stButton > button:hover {
+        background-color: #1d4ed8 !important;
+    }
+
+    /* ================= METRICS ================= */
+
+    div[data-testid="stMetric"] {
+        background-color: #0d1524;
+        border: 1px solid #263449;
+        border-radius: 12px;
+        padding: 15px;
+    }
+
+    div[data-testid="stMetricLabel"] {
+        color: #7f8da3 !important;
+        font-size: 11px !important;
+    }
+
+    div[data-testid="stMetricValue"] {
+        color: #f8fafc !important;
+        font-size: 21px !important;
+        font-weight: 700 !important;
+    }
+
+    /* ================= TABS ================= */
+
+    button[data-baseweb="tab"] {
+        color: #8b99ad !important;
+        font-weight: 600 !important;
+    }
+
+    button[data-baseweb="tab"][aria-selected="true"] {
+        color: #60a5fa !important;
+    }
+
+    /* ================= ALERTS ================= */
+
+    div[data-testid="stAlert"] {
+        border-radius: 10px !important;
+    }
+
+    /* ================= PROGRESS ================= */
+
+    div[data-testid="stProgress"] > div {
+        background-color: #182235 !important;
+    }
+
+    /* ================= FOOTER ================= */
+
+    footer {
+        visibility: hidden;
+    }
+
+</style>
+""", unsafe_allow_html=True)
+
+
+# =========================================================
 # LOAD MODEL
-# ==========================================
+# =========================================================
 
 @st.cache_resource
 def load_model():
@@ -28,460 +149,472 @@ def load_model():
 model = load_model()
 
 
-# ==========================================
+# =========================================================
 # HEADER
-# ==========================================
+# =========================================================
 
-st.title("📧 Email Security Analyzer")
+st.title("🛡️ Email Security Analyzer")
 
-st.markdown("### AI-powered Spam & Phishing Detection")
-
-st.write(
-    "Analyze an email and detect whether it is "
-    "**Spam** or **Genuine (Ham)**."
-)
-
-st.divider()
-
-
-# ==========================================
-# EMAIL INFORMATION
-# ==========================================
-
-col1, col2 = st.columns(2)
-
-with col1:
-    sender = st.text_input(
-        "👤 Sender Email",
-        placeholder="example@gmail.com"
-    )
-
-with col2:
-    subject = st.text_input(
-        "📝 Email Subject",
-        placeholder="Enter email subject..."
-    )
-
-
-# ==========================================
-# EMAIL BODY
-# ==========================================
-
-email_body = st.text_area(
-    "💬 Email Body",
-    height=280,
-    placeholder="Paste the complete email content here..."
+st.caption(
+    "AI-powered spam detection and email threat analysis"
 )
 
 st.write("")
 
 
-# ==========================================
-# ANALYZE BUTTON
-# ==========================================
+# =========================================================
+# MAIN WORKSPACE
+# =========================================================
 
-analyze = st.button(
-    "🔍 Analyze Email",
-    use_container_width=True
+left, right = st.columns(
+    [1.05, 0.95],
+    gap="large"
 )
 
 
-# ==========================================
-# ANALYSIS
-# ==========================================
+# =========================================================
+# LEFT SIDE — EMAIL INPUT
+# =========================================================
 
-if analyze:
+with left:
 
-    if not sender.strip() and not subject.strip() and not email_body.strip():
+    st.subheader("📨 Email Details")
 
-        st.warning(
-            "⚠️ Please enter sender email, subject or email body."
+    sender = st.text_input(
+        "Sender Email",
+        placeholder="example@gmail.com"
+    )
+
+    subject = st.text_input(
+        "Email Subject",
+        placeholder="Enter email subject..."
+    )
+
+    email_body = st.text_area(
+        "Email Body",
+        height=260,
+        placeholder="Paste the complete email content here..."
+    )
+
+    st.write("")
+
+    analyze = st.button(
+        "🔍  ANALYZE EMAIL",
+        use_container_width=True
+    )
+
+
+# =========================================================
+# RIGHT SIDE — THREAT ASSESSMENT
+# =========================================================
+
+with right:
+
+    st.subheader("🎯 Threat Assessment")
+
+    if not analyze:
+
+        st.info(
+            "Enter the email details and click "
+            "**Analyze Email** to start the security scan."
+        )
+
+        st.write("")
+
+        st.caption("AI ENGINE STATUS")
+
+        st.success("● ONLINE")
+
+        st.caption(
+            "Ready to analyze email content"
         )
 
     else:
 
-        # ==================================
-        # COMBINE EMAIL DATA
-        # ==================================
+        if not subject.strip() and not email_body.strip():
 
-        combined_text = (
-            f"Sender: {sender} "
-            f"Subject: {subject} "
-            f"Body: {email_body}"
-        )
+            st.warning(
+                "⚠️ Please enter an email subject or email body."
+            )
 
-        # ==================================
-        # CLEAN TEXT
-        # ==================================
+        else:
 
-        cleaned_text = clean_text(combined_text)
+            # -------------------------------------------------
+            # COMBINE EMAIL
+            # -------------------------------------------------
 
-        # ==================================
-        # MODEL PREDICTION
-        # ==================================
+            combined_text = f"{subject} {email_body}"
 
-        prediction = model.predict([cleaned_text])[0]
-
-        prediction_str = str(prediction).strip().lower()
+            cleaned_text = clean_text(
+                combined_text
+            )
 
 
-        # ==================================
-        # PROBABILITY
-        # ==================================
+            # -------------------------------------------------
+            # MODEL PREDICTION
+            # -------------------------------------------------
 
-        confidence = None
-        probability_dict = {}
+            prediction = model.predict(
+                [cleaned_text]
+            )[0]
 
-        if hasattr(model, "predict_proba"):
+            probabilities = model.predict_proba(
+                [cleaned_text]
+            )[0]
 
-            probabilities = model.predict_proba([cleaned_text])[0]
             classes = model.classes_
 
             probability_dict = dict(
                 zip(classes, probabilities)
             )
 
-            confidence = max(probabilities) * 100
+            confidence = max(
+                probabilities
+            ) * 100
 
 
-        # ==================================
-        # DETERMINE SPAM / HAM
-        # ==================================
+            # -------------------------------------------------
+            # THREAT RESULT
+            # -------------------------------------------------
 
-        # Works with:
-        # 1 / 0
-        # spam / ham
-        # Spam / Ham
-        # true / false
+            if str(prediction) == "1":
 
-        spam_values = {
-            "1",
-            "spam",
-            "junk",
-            "phishing",
-            "true"
-        }
-
-        ham_values = {
-            "0",
-            "ham",
-            "genuine",
-            "not spam",
-            "legitimate",
-            "false"
-        }
-
-        if prediction_str in spam_values:
-
-            is_spam = True
-
-        elif prediction_str in ham_values:
-
-            is_spam = False
-
-        else:
-
-            # Fallback:
-            # Check probability of predicted class
-
-            if probability_dict:
-
-                predicted_probability = probability_dict.get(
-                    prediction,
-                    probability_dict.get(
-                        str(prediction),
-                        0
-                    )
+                st.error(
+                    "🚨 SPAM EMAIL DETECTED"
                 )
 
-                is_spam = predicted_probability >= 0.5
+                st.caption(
+                    "High-risk email detected by the AI classifier."
+                )
+
+                threat = "HIGH RISK"
 
             else:
 
-                is_spam = False
+                st.success(
+                    "✅ GENUINE EMAIL"
+                )
+
+                st.caption(
+                    "No spam classification detected by the AI model."
+                )
+
+                threat = "LOW RISK"
 
 
-        # ==================================
-        # RESULT
-        # ==================================
+            # -------------------------------------------------
+            # RESULT METRICS
+            # -------------------------------------------------
 
-        st.divider()
+            st.write("")
 
-        st.subheader("🔍 Analysis Result")
+            a, b = st.columns(2)
 
+            with a:
 
-        if is_spam:
+                st.metric(
+                    "AI Confidence",
+                    f"{confidence:.2f}%"
+                )
 
-            st.error(
-                "🚨 SPAM EMAIL DETECTED"
+            with b:
+
+                st.metric(
+                    "Threat Level",
+                    threat
+                )
+
+            st.write("")
+
+            st.caption("Model Confidence")
+
+            st.progress(
+                float(confidence / 100)
             )
+
+
+# =========================================================
+# SECURITY ANALYSIS
+# =========================================================
+
+if analyze and (
+    subject.strip() or email_body.strip()
+):
+
+    # =====================================================
+    # URL DETECTION
+    # =====================================================
+
+    urls = re.findall(
+        r"https?://\S+|www\.\S+",
+        combined_text,
+        flags=re.IGNORECASE
+    )
+
+
+    # =====================================================
+    # EMAIL ADDRESS DETECTION
+    # =====================================================
+
+    emails = re.findall(
+        r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}",
+        combined_text
+    )
+
+
+    # =====================================================
+    # PHONE NUMBER DETECTION
+    # =====================================================
+
+    phones = re.findall(
+        r"\b\d{10}\b",
+        combined_text
+    )
+
+
+    # =====================================================
+    # SUSPICIOUS KEYWORDS
+    # =====================================================
+
+    suspicious_words = [
+        "urgent",
+        "winner",
+        "won",
+        "prize",
+        "reward",
+        "free",
+        "click",
+        "claim",
+        "offer",
+        "money",
+        "lottery",
+        "password",
+        "verify",
+        "account",
+        "bank",
+        "congratulations"
+    ]
+
+    found_words = sorted(
+        set(
+            word
+            for word in suspicious_words
+            if word in combined_text.lower()
+        )
+    )
+
+
+    # =====================================================
+    # WORD COUNT
+    # =====================================================
+
+    word_count = len(
+        combined_text.split()
+    )
+
+
+    # =====================================================
+    # SECURITY OVERVIEW
+    # =====================================================
+
+    st.write("")
+
+    st.subheader("🔐 Security Overview")
+
+    c1, c2, c3, c4, c5 = st.columns(5)
+
+    with c1:
+
+        st.metric(
+            "🔗 URLs",
+            len(urls)
+        )
+
+    with c2:
+
+        st.metric(
+            "📧 Emails",
+            len(emails)
+        )
+
+    with c3:
+
+        st.metric(
+            "📱 Phones",
+            len(phones)
+        )
+
+    with c4:
+
+        st.metric(
+            "⚠️ Indicators",
+            len(found_words)
+        )
+
+    with c5:
+
+        st.metric(
+            "📝 Words",
+            word_count
+        )
+
+
+    # =====================================================
+    # TABS
+    # =====================================================
+
+    st.write("")
+
+    overview_tab, security_tab, probability_tab = st.tabs(
+        [
+            "📋 Overview",
+            "🛡️ Security Checks",
+            "📊 Probability"
+        ]
+    )
+
+
+    # =====================================================
+    # OVERVIEW TAB
+    # =====================================================
+
+    with overview_tab:
+
+        st.write("")
+
+        if str(prediction) == "1":
 
             st.warning(
-                "This email shows characteristics commonly "
-                "associated with spam or potentially malicious messages."
+                "⚠️ This email contains characteristics "
+                "commonly associated with spam."
             )
-
-            threat = "🔴 HIGH RISK"
 
         else:
 
             st.success(
-                "✅ GENUINE EMAIL"
+                "✓ The email appears legitimate according "
+                "to the trained classification model."
             )
 
-            st.info(
-                "This email appears to be a legitimate message."
-            )
+        st.write("")
 
-            threat = "🟢 LOW RISK"
+        st.write("**Email Information**")
 
+        info1, info2 = st.columns(2)
 
-        # ==================================
-        # METRICS
-        # ==================================
+        with info1:
 
-        st.subheader("📊 Detection Summary")
-
-        m1, m2, m3 = st.columns(3)
-
-        with m1:
-
-            if confidence is not None:
-
-                st.metric(
-                    "Confidence",
-                    f"{confidence:.2f}%"
-                )
-
-            else:
-
-                st.metric(
-                    "Confidence",
-                    "N/A"
-                )
-
-
-        with m2:
-
-            st.metric(
-                "Threat Level",
-                threat
-            )
-
-
-        with m3:
-
-            word_count = len(
-                combined_text.split()
-            )
-
-            st.metric(
-                "Word Count",
-                word_count
-            )
-
-
-        # ==================================
-        # EMAIL SECURITY CHECKS
-        # ==================================
-
-        st.subheader("🛡️ Email Security Checks")
-
-
-        # URLs
-        urls = re.findall(
-            r"https?://[^\s]+|www\.[^\s]+",
-            combined_text,
-            flags=re.IGNORECASE
-        )
-
-
-        # Email addresses
-        emails = re.findall(
-            r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}",
-            combined_text
-        )
-
-
-        # Phone numbers
-        phones = re.findall(
-            r"\b\d{10}\b",
-            combined_text
-        )
-
-
-        # ==================================
-        # SUSPICIOUS KEYWORDS
-        # ==================================
-
-        suspicious_words = [
-
-            "urgent",
-            "winner",
-            "won",
-            "prize",
-            "reward",
-            "free",
-            "click",
-            "claim",
-            "offer",
-            "money",
-            "lottery",
-            "password",
-            "verify",
-            "account",
-            "bank",
-            "congratulations",
-            "login",
-            "credit card",
-            "debit card",
-            "otp",
-            "security alert",
-            "limited time",
-            "act now",
-            "confirm",
-            "suspended",
-            "payment"
-        ]
-
-
-        text_lower = combined_text.lower()
-
-
-        found_words = [
-
-            word
-            for word in suspicious_words
-            if word in text_lower
-
-        ]
-
-
-        # ==================================
-        # SECURITY METRICS
-        # ==================================
-
-        c1, c2, c3, c4 = st.columns(4)
-
-
-        with c1:
-
-            st.metric(
-                "🔗 URLs",
-                len(urls)
-            )
-
-
-        with c2:
-
-            st.metric(
-                "📧 Email Addresses",
-                len(emails)
-            )
-
-
-        with c3:
-
-            st.metric(
-                "📱 Phone Numbers",
-                len(phones)
-            )
-
-
-        with c4:
-
-            st.metric(
-                "⚠️ Suspicious Words",
-                len(found_words)
-            )
-
-
-        # ==================================
-        # SUSPICIOUS KEYWORDS
-        # ==================================
-
-        if found_words:
+            st.caption("Sender")
 
             st.write(
-                "**⚠️ Suspicious Keywords Found:**"
+                sender
+                if sender
+                else "Not provided"
             )
 
+        with info2:
+
+            st.caption("Subject")
+
             st.write(
-                ", ".join(
-                    sorted(set(found_words))
-                )
+                subject
+                if subject
+                else "Not provided"
+            )
+
+
+    # =====================================================
+    # SECURITY CHECKS TAB
+    # =====================================================
+
+    with security_tab:
+
+        st.write("")
+
+        if urls:
+
+            st.warning(
+                f"🔗 {len(urls)} URL(s) detected in the email."
             )
 
         else:
 
-            st.write(
-                "✅ No common suspicious keywords detected."
+            st.success(
+                "✓ No URLs detected."
             )
 
 
-        # ==================================
-        # PROBABILITY BREAKDOWN
-        # ==================================
+        if emails:
 
-        if probability_dict:
-
-            st.subheader(
-                "📈 Prediction Probability"
+            st.info(
+                f"📧 {len(emails)} email address(es) detected."
             )
 
-            for label, probability in probability_dict.items():
 
-                label_lower = str(label).lower()
+        if phones:
 
-                if label_lower in spam_values:
-
-                    label_name = "🚨 Spam"
-
-                elif label_lower in ham_values:
-
-                    label_name = "✅ Genuine / Ham"
-
-                else:
-
-                    label_name = str(label)
+            st.info(
+                f"📱 {len(phones)} phone number(s) detected."
+            )
 
 
-                st.write(
-                    f"**{label_name}: "
-                    f"{probability * 100:.2f}%**"
-                )
+        st.write("")
 
-                st.progress(
-                    float(probability)
-                )
+        if found_words:
 
-
-        # ==================================
-        # SHOW MODEL OUTPUT
-        # ==================================
-
-        with st.expander("🔧 Model Details"):
-
-            st.write(
-                "**Raw Model Prediction:**",
-                prediction
+            st.warning(
+                "⚠️ Suspicious keywords detected:"
             )
 
             st.write(
-                "**Model Classes:**",
-                list(model.classes_)
-                if hasattr(model, "classes_")
-                else "Not available"
+                ", ".join(found_words)
+            )
+
+        else:
+
+            st.success(
+                "✓ No common suspicious keywords detected."
             )
 
 
-# ==========================================
+    # =====================================================
+    # PROBABILITY TAB
+    # =====================================================
+
+    with probability_tab:
+
+        st.write("")
+
+        for label, probability in probability_dict.items():
+
+            if str(label) == "1":
+
+                label_name = "🚨 Spam"
+
+            else:
+
+                label_name = "✅ Genuine / Ham"
+
+            percentage = probability * 100
+
+            st.write(
+                f"**{label_name}** — "
+                f"{percentage:.2f}%"
+            )
+
+            st.progress(
+                float(probability)
+            )
+
+
+# =========================================================
 # FOOTER
-# ==========================================
+# =========================================================
 
-st.divider()
+st.write("")
 
 st.caption(
-    "⚠️ This system is an AI-based classifier and should "
-    "not be considered a replacement for professional email security tools."
+    "🛡️ Email Security Analyzer  •  "
+    "AI Spam Detection  •  "
+    "Python + Scikit-learn + Streamlit"
 )
