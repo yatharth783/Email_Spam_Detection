@@ -5,7 +5,7 @@ An Machine Learning based Email Spam Detection system that classifies emails as 
 ## 🚀 Live Demo
 
 👉 **Streamlit App:**  
-PASTE_YOUR_STREAMLIT_LINK_HERE
+https://emailspamdetection-ea6hptwngrcqegnnzopjn2.streamlit.app/
 
 ## 📌 Features
 
